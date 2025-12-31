@@ -7,12 +7,89 @@
 
 import SwiftUI
 
-struct OnboardingCommonView: View {
+struct OnboardingCommonView<Content: View>: View {
+    let data: SampleData
+    let content: Content
+
+    
+    init(data: SampleData, @ViewBuilder content: () -> Content) {
+            self.content = content()
+        self.data = data
+        }
+    
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+        HStack {
+            imageView
+            textHeadOrSub
+            content
+//            // Button View
+//            if data.type == .exTension {
+//                Toggle("", isOn: $isToggled)
+//                    .labelsHidden()
+//            } else {
+//                Button {
+//                    onBoardingVM.performAction(data: data.type)
+//                } label: {
+//                    Text("Upload")
+//                        .font(.subheadline)
+//                        .foregroundStyle(.black)
+//                        .frame(width: 72, height: 28)
+//                        .background(.white)
+//                        .clipShape(RoundedRectangle(cornerRadius: 30))
+//                }
+//            }
+        }
+        .frame(width: 360, height: 76)
+        .background(.gray.opacity(0.1))
+        .glossyButtons()
+        .padding(4)
+    }
+    // Image
+    var imageView: some View {
+        Image(systemName: data.imageName)
+            .font(.system(size: 20))
+            .frame(width: 40, height: 40)
+            .background(.white)
+            .clipShape(Circle.circle)
+    }
+    // Text View
+    var textHeadOrSub: some View {
+        VStack(alignment: .leading) {
+            Text(data.title)
+                .fontWeight(.semibold)
+                .lineLimit(1)
+            
+            Text(data.subHeading)
+                .foregroundStyle(.secondary)
+                .font(.system(size: 12))
+                .lineLimit(2)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(width: 160, height: 80)
+        .padding(8)
+    }
+}
+
+struct BgOfView: View {
+    var body: some View {
+        ZStack {
+            Rectangle()
+                .fill(
+                    LinearGradient(
+                        gradient: Gradient(
+                            colors: [.yellow.opacity(0.4), .green.opacity(0.2), .blue.opacity(0.1), .yellow.opacity(0.4)]),
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .ignoresSafeArea()
+        }
     }
 }
 
 #Preview {
-    OnboardingCommonView()
+    @Previewable @State var isTrue: Bool = false
+    //    BgOfView()
+//    var obj = ShowData.latter
+//    OnboardingCommonView(data: SampleData(imageName: obj.imageName, title: obj.title, subHeading: obj.subHeading, type: .exTension), isToggled: $isTrue)
 }

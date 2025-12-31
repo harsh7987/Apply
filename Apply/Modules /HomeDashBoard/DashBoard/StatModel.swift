@@ -6,3 +6,11 @@
 //
 
 import Foundation
+
+struct StatModel: Identifiable {
+    let id = UUID()
+    let icon: String
+    let value: Int
+    let title: String
+}
+
