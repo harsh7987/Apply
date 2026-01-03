@@ -11,6 +11,8 @@ extension View {
     
     func largeBoldTitle() -> some View {
         self.font(.system(size: 25, weight: .bold))
+            .multilineTextAlignment(.center)
+            .fixedSize(horizontal: false, vertical: true)
     }
     
     func largeBoldTitle2() -> some View {
@@ -20,6 +22,8 @@ extension View {
     func obSubHeadline() -> some View {
         self.font(.system(size: 18))
             .foregroundStyle(.secondary)
+            .multilineTextAlignment(.center)
+            .fixedSize(horizontal: false, vertical: true)
     }
     
     func homeSubHeadline() -> some View {
@@ -78,5 +82,13 @@ extension View {
             )
             .shadow(color: .black.opacity(0.1), radius: 5, x: 0, y: 5)
             .padding(8)
+    }
+    
+    func buttonDesign() -> some View {
+        self.font(.subheadline)
+        .foregroundStyle(.black)
+        .frame(width: 72, height: 28)
+        .background(.white)
+        .clipShape(RoundedRectangle(cornerRadius: 30))
     }
 }

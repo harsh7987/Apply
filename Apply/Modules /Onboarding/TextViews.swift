@@ -11,25 +11,24 @@ struct OBMainHeadline: View {
     var body: some View {
         Text("Let's set up your \nworkspace.")
             .largeBoldTitle()
-            .multilineTextAlignment(.center)
     }
 }
 
 struct OBSubHeadline: View {
     var body: some View {
-        VStack {
-            Image(systemName: "sparkles")
-                .font(.system(size: 30))
-                .glassyStyle()
-            
-            OBMainHeadline()
-                .padding(6)
-            
-            Text("Connect your tools to auto-generate\nperfect applications.")
-                .obSubHeadline()
-                .multilineTextAlignment(.center)
+        VStack() {
+
+                Image(systemName: "sparkles")
+                    .font(.system(size: 30))
+                    .glassyStyle()
+                
+                OBMainHeadline()
+                    .padding(.vertical)
+                
+                Text("Connect your tools to auto-generate\nperfect applications.")
+                    .obSubHeadline()
+        
         }
-        .padding()
     }
 }
 
@@ -55,7 +54,7 @@ struct OBButtons: View {
 }
 
 #Preview {
-    OBButtons()
+    OBSubHeadline()
 }
 
 

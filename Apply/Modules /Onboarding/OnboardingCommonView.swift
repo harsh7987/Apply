@@ -22,22 +22,6 @@ struct OnboardingCommonView<Content: View>: View {
             imageView
             textHeadOrSub
             content
-//            // Button View
-//            if data.type == .exTension {
-//                Toggle("", isOn: $isToggled)
-//                    .labelsHidden()
-//            } else {
-//                Button {
-//                    onBoardingVM.performAction(data: data.type)
-//                } label: {
-//                    Text("Upload")
-//                        .font(.subheadline)
-//                        .foregroundStyle(.black)
-//                        .frame(width: 72, height: 28)
-//                        .background(.white)
-//                        .clipShape(RoundedRectangle(cornerRadius: 30))
-//                }
-//            }
         }
         .frame(width: 360, height: 76)
         .background(.gray.opacity(0.1))
@@ -89,7 +73,7 @@ struct BgOfView: View {
 
 #Preview {
     @Previewable @State var isTrue: Bool = false
-    //    BgOfView()
-//    var obj = ShowData.latter
-//    OnboardingCommonView(data: SampleData(imageName: obj.imageName, title: obj.title, subHeading: obj.subHeading, type: .exTension), isToggled: $isTrue)
+      //  BgOfView()
+    var obj = ShowData.latter
+    OnboardingCommonView(data: obj) { }
 }

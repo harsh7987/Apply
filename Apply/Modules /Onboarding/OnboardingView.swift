@@ -31,16 +31,21 @@ struct OnboardingView: View {
             obj.loadData()
             uiSampleData = obj.uiSampleData
         }
+        
     }
     
     var continueButton: some View {
-        Button {
-            
-            
-        } label: {
-            Text("Continue \(Image(systemName: "arrow.forward"))")
-                .font(.title2).bold()
-                .greenCardStyle()
+        VStack {
+            Spacer()
+            Button { } label: {
+                Text("Continue \(Image(systemName: "arrow.forward"))")
+                    .font(.title2).bold()
+                    .greenCardStyle()
+            }
+            .padding()
+            Button { } label: {
+                Text("Skip setup for now")
+            }
         }
     }
     
@@ -48,29 +53,44 @@ struct OnboardingView: View {
     func getView(for data: SampleData) -> some View {
         switch data.type {
         case .email:
-            Rectangle()
-                .frame(width: 100, height: 100)
-                .foregroundColor(.red)
+            connectEmailButton()
         case .resume:
             getResumeButton()
         case .coverLetter:
-            Rectangle()
-                .frame(width: 100, height: 100)
-                .foregroundColor(.red)
+            coverLatterButton()
         case .exTension:
-            Toggle("isOne", isOn: $obViewModel.isExtensionEnabled)
+            Toggle("", isOn: $obViewModel.isExtensionEnabled)
+                .labelsHidden()
         }
     }
     
     
     @ViewBuilder
     func getResumeButton() -> some View {
-        Button("TEst") {
-            print("Opne Resume")
+        Button { } label: {
+            Text("Upload")
+                .buttonDesign()
+        }
+        
+    }
+    
+    @ViewBuilder
+    func connectEmailButton() -> some View {
+        Button {
+            obViewModel.saveAllData()
+        } label: {
+            Text("Upload")
+                .buttonDesign()
         }
     }
     
-
+    @ViewBuilder
+    func coverLatterButton() -> some View {
+        Button { } label: {
+            Text("Upload")
+                .buttonDesign()
+        }
+    }
 }
 
 #Preview {
