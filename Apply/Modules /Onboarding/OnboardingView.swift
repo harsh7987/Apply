@@ -16,13 +16,11 @@ struct OnboardingView: View {
             BgOfView()
             VStack {
                 OBSubHeadline()
-                
                 ForEach(uiSampleData) { data in
                     OnboardingCommonView(data: data) {
                         getView(for: data)
                     }
                 }
-                
                 continueButton
             }
         }
@@ -38,14 +36,11 @@ struct OnboardingView: View {
         VStack {
             Spacer()
             Button { } label: {
-                Text("Continue \(Image(systemName: "arrow.forward"))")
-                    .font(.title2).bold()
+                Text("Next \(Image(systemName: "arrow.forward"))")
+                    .font(.title3).bold()
                     .greenCardStyle()
             }
             .padding()
-            Button { } label: {
-                Text("Skip setup for now")
-            }
         }
     }
     
@@ -58,9 +53,6 @@ struct OnboardingView: View {
             getResumeButton()
         case .coverLetter:
             coverLatterButton()
-        case .exTension:
-            Toggle("", isOn: $obViewModel.isExtensionEnabled)
-                .labelsHidden()
         }
     }
     
@@ -71,7 +63,6 @@ struct OnboardingView: View {
             Text("Upload")
                 .buttonDesign()
         }
-        
     }
     
     @ViewBuilder
