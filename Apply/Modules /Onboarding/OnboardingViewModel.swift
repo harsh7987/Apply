@@ -17,8 +17,7 @@ class OnboardingViewModel {
         }
     }
     
-    
-    func performAction( data: OnboardingItemType) {
+    func performAction(data: OnboardingItemType) {
         switch data {
         case .coverLetter:
             print("latter ")
@@ -26,9 +25,6 @@ class OnboardingViewModel {
             print("Email")
         case .resume:
             print("Resume")
-        case .exTension:
-            print("Extension")
-            break
         }
     }
     
