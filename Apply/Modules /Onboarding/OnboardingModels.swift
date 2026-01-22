@@ -1,5 +1,5 @@
 //
-//  OnboardingUISample.swift
+//  OnboardingModels.swift
 //  Apply
 //
 //  Created by Pranjal Verma on 27/12/25.
@@ -9,12 +9,8 @@ import Foundation
 import SwiftUI
 
 enum OnboardingItemType {
-    case email, resume, coverLetter
-}
-
-struct ShowData {
-    
-    
+//    case email
+    case resume, coverLetter
 }
 
 struct OnboardingItem: Identifiable {

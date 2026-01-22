@@ -5,4 +5,17 @@
 //  Created by Pranjal Verma on 10/01/26.
 //
 
-import Foundation
+// ApplyExtension/ShareViewModel.swift
+import SwiftUI
+
+@Observable
+class ShareViewModel {
+    enum ShareState {
+        case loading
+        case success
+        case error
+    }
+    
+     var state: ShareState = .loading
+     var statusMessage: String = "Saving..."
+}

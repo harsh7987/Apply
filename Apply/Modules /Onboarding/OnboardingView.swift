@@ -6,36 +6,97 @@
 //
 
 import SwiftUI
+import SwiftData
+internal import UniformTypeIdentifiers
 
 struct OnboardingView: View {
-    @State private var uiSampleData: [SampleData] = []
-    @State private var obViewModel = OnboardingViewModel()
+    @State private var viewmodel = OnboardingViewModel()
+    @Environment(\.modelContext) private var modelContext
+    @Query var user: [UserProfile]
     
     var body: some View {
         ZStack {
-            BgOfView()
+            BackgroundView()
             VStack {
                 OBSubHeadline()
-                ForEach(uiSampleData) { data in
+                ForEach(viewmodel.onBoardingItems) { data in
                     OnboardingCommonView(data: data) {
-                        getView(for: data)
+                        getItemView(for: data)
                     }
                 }
-                continueButton
+                
+                if let error = viewmodel.errorMessage {
+                    Text(error).foregroundStyle(.red).font(.caption)
+                }
+                nextButton
             }
         }
         .onAppear {
-            var obj = ShowData()
-            obj.loadData()
-            uiSampleData = obj.uiSampleData
+            viewmodel.checkUploadStatus()
         }
+        .fileImporter(isPresented: $viewmodel.importResume,
+                      allowedContentTypes: [.pdf],
+                      allowsMultipleSelection: false) { result in
+            switch result {
+            case .success(let url):
+                if let url = url.first {
+                    
+                    Task {
+                        await viewmodel.processSelectResume(resumeURL: url, modelContext: modelContext)
+                    }
+                }
+            case .failure(let failure):
+                viewmodel.errorMessage = failure.localizedDescription
+            }
+            
+        }
+                      .sheet(isPresented: $viewmodel.showReviewSheet) {
+                          if let user = user.first {
+                              NavigationStack {
+                                  ProfileEditView(user: user, isOnboarding: true) {
+                                      viewmodel.isPresentHomeView = true
+                                  }
+                              }
+                          }
+                      }
+                      .fullScreenCover(isPresented: $viewmodel.isPresentHomeView) {
+                          // handle dismiss
+                      } content: {
+                          HomeView()
+                      }
+        //  COVER LETTER
+                      .fileImporter(isPresented: $viewmodel.importCover,
+                                    allowedContentTypes: [.pdf],
+                                    allowsMultipleSelection: false) { result in
+                          switch result {
+                          case .success(let urls):
+                              if let url = urls.first {
+                                  // ✅ Wrap in do-catch to handle errors safely
+                                  do {
+                                      try CoverLetterManager.shared.saveCoverLetter(from: url)
+                                      
+                                      // Update UI immediately
+                                      viewmodel.isCoverUploaded = true
+                                      FeedbackManager.shared.trigger(.success)
+                                      print("✅ Cover letter saved successfully.")
+                                  } catch {
+                                      print("❌ Failed to save file: \(error.localizedDescription)")
+                                      FeedbackManager.shared.trigger(.error)
+                                  }
+                              }
+                          case .failure(let error):
+                              print("❌ Import failed: \(error.localizedDescription)")
+                          }
+                      }
         
     }
     
-    var continueButton: some View {
+    var nextButton: some View {
         VStack {
             Spacer()
-            Button { } label: {
+            Button {
+                viewmodel.isPresentHomeView.toggle()
+            } label: {
                 Text("Next \(Image(systemName: "arrow.forward"))")
                     .font(.title3).bold()
                     .greenCardStyle()
@@ -45,43 +106,56 @@ struct OnboardingView: View {
     }
     
     @ViewBuilder
-    func getView(for data: SampleData) -> some View {
+    func getItemView(for data: OnboardingItem) -> some View {
         switch data.type {
-        case .email:
-            connectEmailButton()
         case .resume:
-            getResumeButton()
+            resumeButton
         case .coverLetter:
-            coverLatterButton()
+            coverLetterButton
         }
     }
     
-    
-    @ViewBuilder
-    func getResumeButton() -> some View {
-        Button { } label: {
-            Text("Upload")
-                .buttonDesign()
-        }
-    }
-    
-    @ViewBuilder
-    func connectEmailButton() -> some View {
+    var resumeButton: some View {
         Button {
-            obViewModel.saveAllData()
+            viewmodel.importResume.toggle()
         } label: {
-            Text("Upload")
-                .buttonDesign()
+            HStack {
+                // Change Text based on State
+                if viewmodel.isExtracting {
+                    ProgressView()
+                } else if viewmodel.uploadSucces {
+                    Image(systemName: "checkmark.circle.fill")
+                } else {
+                    Text("Upload")
+                }
+            }
+            .buttonDesign()
+        }
+        .disabled(viewmodel.isExtracting || viewmodel.uploadSucces)
+    }
+    
+    var coverLetterButton: some View {
+        Button { } label: {
+            HStack {
+                if viewmodel.uploadSucces {
+                    Image(systemName: "checkmark.circle.fill")
+                } else {
+                    Text("Upload")
+                }
+            }
+            .buttonDesign()
         }
     }
     
-    @ViewBuilder
-    func coverLatterButton() -> some View {
-        Button { } label: {
-            Text("Upload")
-                .buttonDesign()
-        }
-    }
+    //    @ViewBuilder
+    //    func connectEmailButton() -> some View {
+    //        Button {
+    //            viewmodel.saveAllData()
+    //        } label: {
+    //            Text("Upload")
+    //                .buttonDesign()
+    //        }
+    //    }
 }
 
 #Preview {

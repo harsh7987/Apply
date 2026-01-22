@@ -6,3 +6,11 @@
 //
 
 import Foundation
+
+struct AIProfileResponse: Codable {
+    let name: String
+    let email: String
+    let phone: String     
+    let skills: String
+    let experience: String
+}

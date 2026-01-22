@@ -20,17 +20,10 @@ struct Message: Codable {
     let content: String
 }
 
-struct JobLatter: Codable {
+struct GeneratedCoverLetter: Codable {
     let subject: String
     let body: String
+    let company: String?
 }
-
-struct JobDraft {
-    let title: String
-    let rawDescription: String
-    let cleanDescription: String
-    let hrEmail: String?
-}
-
 
 

@@ -7,47 +7,25 @@
 
 import Foundation
 
-enum RestApiAction: String {
-    case get = "GET"
-    case post = "POST"
-}
 
-enum UserTone {
-    case formal
-    case casual
-    case hrFriendly
-}
-
-protocol NetworkRequest {
-    var baseURL: String { get }
-    var endPoint: String { get }
-    var header: [String : String]? { get }
-    var action: RestApiAction { get }
-    var body: [String : Any]? { get }
-    func getRequest() -> URLRequest?
-}
+import Foundation
 
 enum RestApi: NetworkRequest {
     
-    case generateApplication(apiKey: String, jobDetails: String, skills: String, experince: String, userTone: UserTone, name: String)
+    // CASE 1: Generate Cover Letter
+    case generateApplication(apiKey: String, request: GenerationRequest)
     
-    var baseURL: String {
-        switch self {
-        case .generateApplication(let apiKey, let jobDetails, let skills, let experince, _, _):
-            "https://api.openai.com"
-        }
-    }
+    // CASE 2: Extract Profile from CV (New!)
+    case extractProfile(apiKey: String, resumeText: String)
     
-    var endPoint: String {
-        switch self {
-        case .generateApplication(let apiKey, let jobDetails, let skills, let experince, _, _):
-            "/v1/chat/completions"
-        }
-    }
+    var baseURL: String { "https://api.openai.com" }
+    var endPoint: String { "/v1/chat/completions" }
+    var action: RestApiAction { .post }
     
     var header: [String : String]? {
         switch self {
-        case .generateApplication(let apiKey, let jobDetails, let skills, let experince, _, _):
+        case .generateApplication(let apiKey, _),
+             .extractProfile(let apiKey, _):
             return [
                 "Content-Type": "application/json",
                 "Authorization": "Bearer \(apiKey)"
@@ -55,76 +33,71 @@ enum RestApi: NetworkRequest {
         }
     }
     
-    var action: RestApiAction {
+    var body: [String : Any]? {
         switch self {
-        case .generateApplication(let apiKey, let jobDetails, let skills, let experince, _, _):
-                .post
+            
+        // LOGIC FOR COVER LETTER
+        case .generateApplication(_, let req):
+            let systemPrompt = "You are a helpful assistant designed to output JSON. Output ONLY raw JSON with keys: 'subject', 'body', and 'company'."
+            let userPrompt = """
+            Write a \(req.tone.rawValue) job application email.
+            MY NAME: \(req.user.name)
+            JOB: \(req.job.title)
+            SKILLS: \(req.user.skills)
+            EXP: \(req.user.experience)
+            DETAILS: \(req.job.cleanDescription.prefix(2000))
+            INSTRUCTIONS: \(req.userPrompt)
+            TASK:
+                1. Identify the Company Name. If inferring from an email domain (e.g. @google.com), use the short name (e.g. 'Google') instead of the full legal entity.
+                2. Write a Subject line.
+                3. Write the Email Body.
+                
+                FORMAT: 
+                JSON { 
+                    "subject": "...", 
+                    "body": "...", 
+                    "company": "Company Name OR null" 
+                }
+            """
+            return buildOpenAIBody(system: systemPrompt, user: userPrompt, temperature: 0.8)
+            
+        // LOGIC FOR PROFILE EXTRACTION
+        case .extractProfile(_, let resumeText):
+            let systemPrompt = """
+            You are a Data Extraction API. You will receive a Resume text.
+            Extract these fields and return valid JSON:
+            - name (Full Name)
+            - email
+            - phone
+            - skills (Comma separated list)
+            - experience (Total years string, e.g. '2 Years')
+            If not found, use empty string "". Return ONLY raw JSON.
+            """
+            return buildOpenAIBody(system: systemPrompt, user: resumeText, temperature: 0.1)
         }
     }
     
-    var body: [String : Any]? {
-        switch self {
-        case .generateApplication(let apiKey, let jobDetails, let skills, let experince, let userTone, let name):
-            let systemPrompt = "You are a helpful assistant designed to output JSON. You must ONLY output a raw JSON object with keys: 'subject' and 'body'. Do not add any markdown formatting or extra text."
-            
-            var userType: String {
-                switch userTone {
-                case .formal:
-                    "FORMAL"
-                case .casual:
-                    "CASUAL"
-                case .hrFriendly:
-                    "HR FRIENDLY"
-                }
-            }
-            
-            let userPrompt = """
-                Write a professional job application email based on this data:
-                MY NAME: \(name)
-                JOB DETAILS: \(jobDetails)
-                MY SKILLS: \(skills)
-                MY EXPERINCE: \(experince)
-                
-                REQUIREMENT: 
-                - TYPE OF TONE: \(userType)
-                - FORMATE: Professional Cover Letter
-                - Response strictly in JSON format: {"subject": "...", "body": "..."}
-                """
-            
-            return [
-                "model": "gpt-4.1-mini",
-                "response_format": ["type": "json_object"],
-                "messages": [
-                    // message 1 (system)
-                    ["role" : "system", "content": systemPrompt],
-                    // meessage 2 (user)
-                    ["role" : "user", "content" : userPrompt]
-                ]
-            ]
-        }
+    // Helper to keep code clean
+    private func buildOpenAIBody(system: String, user: String, temperature: Float) -> [String: Any] {
+        return [
+            "model": "gpt-4.1-mini",
+            "response_format": ["type": "json_object"],
+            "messages": [
+                ["role": "system", "content": system],
+                ["role": "user", "content": user]
+            ],
+            "temperature": temperature
+        ]
     }
     
     func getRequest() -> URLRequest? {
-        guard let url = URL(string: baseURL + endPoint) else {
-            return nil
-        }
-        
+        guard let url = URL(string: baseURL + endPoint) else { return nil }
         var request = URLRequest(url: url)
         request.httpMethod = action.rawValue
         request.allHTTPHeaderFields = header
-        
         if let body = body {
-            do {
-                let jsonData = try JSONSerialization.data(withJSONObject: body, options: [])
-                request.httpBody = jsonData
-            } catch {
-                print("Error converting dictionary to json data \(error)")
-                return nil
-            }
+            request.httpBody = try? JSONSerialization.data(withJSONObject: body)
         }
-        
         return request
     }
-    
-    
 }

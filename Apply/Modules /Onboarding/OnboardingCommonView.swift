@@ -8,14 +8,14 @@
 import SwiftUI
 
 struct OnboardingCommonView<Content: View>: View {
-    let data: SampleData
+    let data: OnboardingItem
     let content: Content
 
     
-    init(data: SampleData, @ViewBuilder content: () -> Content) {
-            self.content = content()
+    init(data: OnboardingItem, @ViewBuilder content: () -> Content) {
+        self.content = content()
         self.data = data
-        }
+    }
     
     var body: some View {
         HStack {
@@ -54,7 +54,7 @@ struct OnboardingCommonView<Content: View>: View {
     }
 }
 
-struct BgOfView: View {
+struct BackgroundView: View {
     var body: some View {
         ZStack {
             Rectangle()
@@ -72,8 +72,5 @@ struct BgOfView: View {
 }
 
 #Preview {
-    @Previewable @State var isTrue: Bool = false
-      //  BgOfView()
-    var obj = ShowData.latter
-    OnboardingCommonView(data: obj) { }
+    OnboardingCommonView(data: OnboardingItem(imageName: "envelope.fill", title: "Connect Email", subHeading: "Email,Outlook,iCloud", type: .coverLetter)) { }
 }
