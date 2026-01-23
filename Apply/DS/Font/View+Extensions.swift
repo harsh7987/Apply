@@ -55,7 +55,7 @@ extension View {
     
     func greenCardStyle() -> some View {
         self.foregroundStyle(.black)
-            .frame(width: 360, height: 62)
+            .frame(width: 300, height: 62)
             .background(.yellow.opacity(1))
             .background(.ultraThinMaterial)
             .clipShape(RoundedRectangle(cornerRadius: 40))

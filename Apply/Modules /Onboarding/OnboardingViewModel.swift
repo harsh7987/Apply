@@ -12,7 +12,6 @@ import SwiftData
 class OnboardingViewModel {
     
     var onBoardingItems: [OnboardingItem] = []
-    var isPresentHomeView = false
     var showReviewSheet = false
     
     // CoverLetter
@@ -24,6 +23,9 @@ class OnboardingViewModel {
     var isExtracting = false
     var uploadSucces = false
     var errorMessage: String?
+    
+    // Add this state to handle the Info Popup
+    var showInfoAlert = false
     
     var resume = OnboardingItem(imageName: "text.document.fill", title: "Upload Resume", subHeading: "PDF or DocX", type: .resume)
     var letter = OnboardingItem(imageName: "long.text.page.and.pencil.fill", title: "Cover Latter", subHeading: "Optional for tone matching", type: .coverLetter)
@@ -61,9 +63,7 @@ class OnboardingViewModel {
             uploadSucces = true
             FeedbackManager.shared.trigger(.success)
             
-            // Small delay for UX
-            try? await Task.sleep(nanoseconds: 1 * 1_000_000_000)
-            showReviewSheet = true
+    
             
         } catch {
             // 4. Handle Errors

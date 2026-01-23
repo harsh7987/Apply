@@ -45,81 +45,57 @@ struct HomeTextView: View {
 }
 
 struct RoundedButtonView: View {
-    @State private var scrapedJob: ScrapedJob? = nil
-    @State private var isScraping = false
+    
+    @State private var showInfoAlert = false
+    var viewModel: HomeViewModel
+    
     
     var body: some View {
         VStack {
-            // 1. Share Post Button
-            Button {
-                // This will eventually be triggered by the Share Extension
-            } label: {
-                Text("\(Image(systemName: "link"))  Create from share post")
-                    .font(.title3)
-                    .fontWeight(.heavy)
-                    .greenCardStyle()
-            }
-            
-            HStack {
-                // 2. Paste Link Button
+            HStack(spacing: 12) {
                 Button {
-                    // Grab from clipboard automatically!
                     if let urlString = UIPasteboard.general.string {
-                        scrapeLink(url: urlString)
+                        viewModel.scrapeLink(url: urlString)
                     }
                 } label: {
-                    if isScraping {
+                    if viewModel.isScraping {
                         ProgressView().tint(.black)
                             .whiteCardStyle()
-                            .glossyCardBg(radius: 40)
+                            .greenCardStyle()
                     } else {
                         Text("\(Image(systemName: "link.circle"))  Paste Link")
-                            .whiteCardStyle()
-                            .glossyCardBg(radius: 40)
+                            .font(.title3)
+                            .fontWeight(.bold)
+                            .greenCardStyle()
                     }
                 }
-                .padding(.horizontal, 6)
-                .padding(.vertical, 6)
-                .disabled(isScraping)
                 
-                // 3. Import / Manual Button
                 Button {
-                    // Manual entry logic
+                    showInfoAlert = true
+                    FeedbackManager.shared.impact(.light)
                 } label: {
-                    Text("\(Image(systemName:"clipboard"))  Import")
-                        .whiteCardStyle()
-                        .glossyCardBg(radius: 40)
+                    Image(systemName: "info.circle.fill")
+                        .font(.title2)
+                        .foregroundStyle(.blue)
+                        .frame(width: 50, height: 50)
+                        .background(.regularMaterial) // Glass effect
+                        .clipShape(Circle())
+                }
+                .alert("Magic Paste ✨", isPresented: $showInfoAlert) {
+                    Button("Got it", role: .cancel) { }
+                } message: {
+                    Text("Found your dream job? Just copy the link and tap 'Paste'. We will instantly read the job description and write a custom email that matches your skills to their requirements!")
                 }
             }
+            
         }
-        // 4. The Sheet that triggers when scrapedJob is set
-        .sheet(item: $scrapedJob) { job in
-            JobPreviewView(job: job)
-        }
+
     }
     
-    func scrapeLink(url: String) {
-        print("🚀 Starting Scrape for: \(url)")
-        self.isScraping = true
-        
-        Task { @MainActor in
-            JobScraperManager.shared.scrape(url: url) { job in
-                self.isScraping = false
-                
-                if let job = job {
-                    print("✨ RECEIVED JOB: \(job.title)")
-                    self.scrapedJob = job
-                } else {
-                    print("⚠️ Scrape Failed")
-                    // Optional: Add a state for an alert here
-                }
-            }
-        }
-    }
 }
 
 #Preview {
-    RoundedButtonView()
+    RoundedButtonView(viewModel: HomeViewModel())
 //    ProfileAndSet()
 //    HomeTextView()
 }

@@ -39,30 +39,11 @@ struct SettingsView: View {
                     SettingsRow(icon: "person.crop.circle.fill", color: .green, title: "Edit Profile", value: users.first?.name ?? "User")
                 }
                 
-                // 2. Resume & Cover Letter
-                Button {
-                    showCVImporter = true
-                } label: {
-                    HStack {
-                        SettingsRow(icon: "doc.fill", color: .orange, title: "Resume",
-                                    value: CVManager.shared.cvExists() ? "Uploaded" : "Upload")
-                        
-                        if isCVUpdating {
-                            Spacer()
-                            ProgressView()
-                                .padding(.leading, 5)
-                        }
-                    }
-                }
-                .disabled(isCVUpdating)
-             // Cover button
-                Button {
-                    showCoverImporter = true
-                } label: {
-                    HStack {
-                        SettingsRow(icon: "text.quote", color: .purple, title: "Cover Letter", value: CoverLetterManager.shared.coverLetterExists() ? "Uploaded" : "Upload")
-                    }
-                }
+                // 2. Resume button
+                resumeButton
+                
+                // 3. Cover button
+                coverButton
                 
             }
             
@@ -99,13 +80,6 @@ struct SettingsView: View {
             }
         }
         .navigationTitle("Settings")
-        .fileImporter(
-            isPresented: $showCVImporter,
-            allowedContentTypes: [.pdf],
-            allowsMultipleSelection: false
-        ) { result in
-            handleResumeSelection(result)
-        }
         // Error/Success Alert
         .alert("Resume Update", isPresented: Binding(get: { alertMessage != nil }, set: { _ in alertMessage = nil })) {
             Button("OK", role: .cancel) { }
@@ -125,7 +99,18 @@ struct SettingsView: View {
                 )
             }
         }
-        // Cover
+        
+        
+    }
+    
+    var coverButton: some View {
+        Button {
+            showCoverImporter = true
+        } label: {
+            HStack {
+                SettingsRow(icon: "text.quote", color: .purple, title: "Cover Letter", value: CoverLetterManager.shared.coverLetterExists() ? "Uploaded" : "Upload")
+            }
+        }
         .fileImporter(isPresented: $showCoverImporter,
                       allowedContentTypes: [.pdf],
                       allowsMultipleSelection: false) { result in
@@ -147,7 +132,31 @@ struct SettingsView: View {
                 print("❌ Import failed: \(error.localizedDescription)")
             }
         }
-        
+    }
+    
+    var resumeButton: some View {
+        Button {
+            showCVImporter = true
+        } label: {
+            HStack {
+                SettingsRow(icon: "doc.fill", color: .orange, title: "Resume",
+                            value: CVManager.shared.cvExists() ? "Uploaded" : "Upload")
+                
+                if isCVUpdating {
+                    Spacer()
+                    ProgressView()
+                        .padding(.leading, 5)
+                }
+            }
+        }
+        .disabled(isCVUpdating)
+        .fileImporter(
+            isPresented: $showCVImporter,
+            allowedContentTypes: [.pdf],
+            allowsMultipleSelection: false
+        ) { result in
+            handleResumeSelection(result)
+        }
     }
     
     var useDefault: some View {

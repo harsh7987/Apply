@@ -43,6 +43,17 @@ class JobScraperManager: NSObject, WKNavigationDelegate {
         webView.load(request)
     }
     
+    func scrapeAsync(url: String) async -> ScrapedJob? {
+        // This "pauses" and waits for your completion handler to finish
+        return await withCheckedContinuation { continuation in
+            // Call your existing function
+            self.scrape(url: url) { result in
+                // Resume the async wait with the result
+                continuation.resume(returning: result)
+            }
+        }
+    }
+    
     // MARK: - WKNavigationDelegate
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         print("✅ Page Loaded. Waiting 1.5 seconds for JS...")

@@ -39,7 +39,6 @@ class ShareCoordinator {
     // Data
     var currentScrapedJob: ScrapedJob?
     
-    
     // 🧠 The "Remote Control" for our background worker
     var scrapeTask: Task<Void, Never>?
     

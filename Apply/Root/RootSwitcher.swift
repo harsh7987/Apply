@@ -9,11 +9,16 @@ import SwiftUI
 import SwiftData
 
 struct RootSwitcher: View {
-    @Query private var users: [UserProfile]
+    @AppStorage("hasCompletedOnboarding") var hasCompletedOnboarding: Bool = false
     
     var body: some View {
-        if users.isEmpty {
-            OnboardingView()
+        if !hasCompletedOnboarding {
+            OnboardingView {
+                // 3. Pass a "Finish Action" to the view
+                withAnimation {
+                    hasCompletedOnboarding = true
+                }
+            }
         } else {
             ContentView()
         }
