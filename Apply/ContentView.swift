@@ -23,10 +23,17 @@ struct ContentView: View {
         // 3. Create the Bindable proxy for bindings ($)
         @Bindable var coordinator = shareCoordinator
         
-        // 4. THE NESTING: HomeView goes inside!
-        HomeView()
-        // Pass the badge count down if needed, or let HomeView query it itself (It already does!)
-        
+        ZStack { // 👈 Wrap HomeView in a ZStack so we can float the spinner on top
+            HomeView()
+            // 👇 ADD THIS LOADING SPINNER
+            if coordinator.isScraping {
+                Color.black.opacity(0.4).ignoresSafeArea()
+                ProgressView("Analyzing Link...")
+                    .padding()
+                    .background(.ultraThinMaterial)
+                    .cornerRadius(10)
+            }
+        }
         // ⬇️ GLOBAL OVERLAYS (Attached to the Parent) ⬇️
         
         // A. New Job Alert
@@ -36,6 +43,11 @@ struct ContentView: View {
             } message: {
                 Text("Received link: \(shareCoordinator.incomingUrl ?? "Unknown")")
             }
+            .alert("Scraping Error", isPresented: $coordinator.showErrorAlert) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(shareCoordinator.errorMessage)
+            }
         
         // B. Template Selector (Force Quit Style)
             .overlay {
@@ -43,7 +55,11 @@ struct ContentView: View {
                     TemplateSelectorView(
                         onSelectAI: { shareCoordinator.handleAISelection() },
                         onSelectTemplate: { shareCoordinator.handleTemplateSelection(template: $0) },
-                        onCancel: { coordinator.showTemplateSelector = false }
+                        onCancel: {
+                            coordinator.showTemplateSelector = false
+                            coordinator.isScraping = false
+                            coordinator.scrapeTask?.cancel()
+                        }
                     )
                 }
             }

@@ -9,7 +9,7 @@ import Foundation
 
 class AIService {
     static let shared = AIService()
-    private let apiKey = "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"
+    private let apiKey = "sk-proj-1uVtC6MNkgPyEkcFS3MUwvQkjRLmtkkdA56Lv4DPlkk7PkwIaHTV3_mhrMY38wAzt3qFTIOr6gT3BlbkFJtVa-TUUFYZLPgasalP5VSOJYxVxQ9Mr-X2XIpmf4CCdOLcwcdk4XTxFSfKnh6hqyRoskU0z"
     
     // 1. Generate Letter
     func generateCoverLetter(request: GenerationRequest) async throws -> GeneratedCoverLetter {

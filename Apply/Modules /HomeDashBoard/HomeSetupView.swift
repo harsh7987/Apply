@@ -58,7 +58,7 @@ struct RoundedButtonView: View {
                         viewModel.scrapeLink(url: urlString)
                     }
                 } label: {
-                    if viewModel.isScraping {
+                    if viewModel.isScrapingTrue {
                         ProgressView().tint(.black)
                             .whiteCardStyle()
                             .greenCardStyle()
@@ -69,6 +69,8 @@ struct RoundedButtonView: View {
                             .greenCardStyle()
                     }
                 }
+                .disabled(viewModel.isScrapingTrue)
+                .opacity(viewModel.isScrapingTrue ? 0.6 : 1.0)
                 
                 Button {
                     showInfoAlert = true

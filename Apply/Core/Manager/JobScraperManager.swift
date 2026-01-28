@@ -43,14 +43,43 @@ class JobScraperManager: NSObject, WKNavigationDelegate {
         webView.load(request)
     }
     
+    // Add this inside JobScraperManager class
+
     func scrapeAsync(url: String) async -> ScrapedJob? {
-        // This "pauses" and waits for your completion handler to finish
-        return await withCheckedContinuation { continuation in
-            // Call your existing function
-            self.scrape(url: url) { result in
-                // Resume the async wait with the result
-                continuation.resume(returning: result)
+        print("🚦 1. Entering scrapeAsync...") // Debug Print
+        
+        return await withTaskGroup(of: ScrapedJob?.self) { group in
+            
+            // Racer A: Scraper
+            group.addTask {
+                print("🐢 2. Scraper Task Started") // Debug Print
+                return await withCheckedContinuation { continuation in
+                    Task { @MainActor in
+                        print("🕸️ 3. Calling Old Scrape Function") // Debug Print
+                        self.scrape(url: url) { result in
+                            print("📬 4. Scraper Got Result") // Debug Print
+                            continuation.resume(returning: result)
+                        }
+                    }
+                }
             }
+            
+            // Racer B: Timer
+            group.addTask {
+                print("⏰ 5. Timer Started") // Debug Print
+                // 👇 CHANGE THIS TO 2 SECONDS FOR TESTING
+                try? await Task.sleep(nanoseconds: 6 * 1_000_000_000)
+                print("🔔 6. Timer Finished! Returning Nil.") // Debug Print
+                return nil
+            }
+            
+            if let result = await group.next() {
+                print("🏁 7. Race Finished. Winner: \(result == nil ? "Timer (Nil)" : "Scraper (Job)")")
+                group.cancelAll()
+                return result
+            }
+            
+            return nil
         }
     }
     

@@ -43,7 +43,7 @@ struct HomeView: View {
                     // The Popup
                     TemplateSelectorView(
                         onSelectAI: {
-                            // Logic for AI selection
+                            viewModel.handleAISelection()
                         },
                         onSelectTemplate: { template in
                             // Call the function we wrote earlier
@@ -93,10 +93,17 @@ struct HomeView: View {
                     JobPreviewView(job: job)
                 }
             }
+            .alert("Link Error", isPresented: $viewModel.showErrorAlert) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text(viewModel.errorMessage)
+            }
+            
             .tabItem {
                 Label("Home", systemImage: "house.fill")
             }
             .tag(0) // 👈 Important for binding
+            
             
             // TAB 1: DRAFTS
             NavigationStack {
