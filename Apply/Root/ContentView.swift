@@ -33,26 +33,45 @@ struct ContentView: View {
                     .background(.ultraThinMaterial)
                     .cornerRadius(10)
             }
-        }
+        }.blur(radius: coordinator.showNewJobAlert ? 10 : 0)
         // ⬇️ GLOBAL OVERLAYS (Attached to the Parent) ⬇️
         
-        // A. New Job Alert
-            .alert("New Job Detected!", isPresented: $coordinator.showNewJobAlert) {
-                Button("Apply Now") { shareCoordinator.handleApplyClick() }
-                Button("Cancel", role: .cancel) { }
-            } message: {
-                Text("Received link: \(shareCoordinator.incomingUrl ?? "Unknown")")
-            }
+        // A.
             .alert("Scraping Error", isPresented: $coordinator.showErrorAlert) {
                 Button("OK", role: .cancel) {}
             } message: {
                 Text(shareCoordinator.errorMessage)
             }
+            .overlay {
+                    if coordinator.showNewJobAlert {
+                        ZStack {
+                            // 1. Dimmed Background (Tap to dismiss)
+                            Color.black.opacity(0.4)
+                                .ignoresSafeArea()
+                                .onTapGesture { coordinator.showNewJobAlert = false }
+                            
+                            // 2. Your Custom Card
+                            JobInterceptCard(
+                                url: shareCoordinator.incomingUrl ?? "Unknown", // Use your real data
+                                onApply: {
+                                    shareCoordinator.handleApplyClick()
+                                    // Optional: Close card immediately after clicking apply
+                                    // coordinator.showNewJobAlert = false
+                                },
+                                onDismiss: {
+                                    coordinator.showNewJobAlert = false
+                                }
+                            )
+                            .transition(.scale(scale: 0.8).combined(with: .opacity))
+                        }
+                        .zIndex(100) // Ensures it sits on top of everything
+                    }
+                }
         
         // B. Template Selector (Force Quit Style)
             .overlay {
                 if coordinator.showTemplateSelector {
-                    TemplateSelectorView(
+                    TemplateFrostedGlass(
                         onSelectAI: { shareCoordinator.handleAISelection() },
                         onSelectTemplate: { shareCoordinator.handleTemplateSelection(template: $0) },
                         onCancel: {

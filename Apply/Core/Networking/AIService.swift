@@ -9,11 +9,12 @@ import Foundation
 
 class AIService {
     static let shared = AIService()
-    private let apiKey = "sk-proj-1uVtC6MNkgPyEkcFS3MUwvQkjRLmtkkdA56Lv4DPlkk7PkwIaHTV3_mhrMY38wAzt3qFTIOr6gT3BlbkFJtVa-TUUFYZLPgasalP5VSOJYxVxQ9Mr-X2XIpmf4CCdOLcwcdk4XTxFSfKnh6hqyRoskU0z"
+    private let apiKey = ""
     
     // 1. Generate Letter
     func generateCoverLetter(request: GenerationRequest) async throws -> GeneratedCoverLetter {
         print("🤖 Generating Letter...")
+    
         return try await performAICall(
             route: .generateApplication(apiKey: apiKey, request: request),
             resultType: GeneratedCoverLetter.self

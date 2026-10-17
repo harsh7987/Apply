@@ -8,12 +8,16 @@
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
 			<key>CFBundleURLName</key>
-			<string>com.harsh007.ApplyNew</string>
+			<string>com.harsh.verma.apply</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>applyApp</string>
 			</array>
 		</dict>
+	</array>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
 	</array>
 </dict>
 </plist>

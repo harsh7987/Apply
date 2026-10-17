@@ -36,6 +36,7 @@ struct DetailDefaultListView: View {
                 }
             }
         }
+        .toolbar(.hidden, for: .tabBar)
     }
     
     private func deleteTemplates(at offsets: IndexSet) {

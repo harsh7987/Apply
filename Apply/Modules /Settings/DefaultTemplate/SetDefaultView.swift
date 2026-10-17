@@ -49,6 +49,7 @@ struct SetDefaultView: View {
             }
             .disabled(title.isEmpty || bodyText.isEmpty)
         }
+        .toolbar(.hidden, for: .tabBar)
     }
     
     private func save() {

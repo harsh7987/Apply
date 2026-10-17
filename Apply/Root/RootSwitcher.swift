@@ -10,17 +10,27 @@ import SwiftData
 
 struct RootSwitcher: View {
     @AppStorage("hasCompletedOnboarding") var hasCompletedOnboarding: Bool = false
+    @Environment(\.modelContext) private var modelContext
     
     var body: some View {
-        if !hasCompletedOnboarding {
-            OnboardingView {
-                // 3. Pass a "Finish Action" to the view
-                withAnimation {
-                    hasCompletedOnboarding = true
+        Group {
+            if !hasCompletedOnboarding {
+                OnboardingView {
+                    withAnimation {
+                        // 1. Grant the tokens RIGHT HERE, after they finish onboarding
+                        CreditManager.shared.grantInitialTokens(context: modelContext)
+                        
+                        // 2. Dismiss onboarding
+                        hasCompletedOnboarding = true
+                    }
                 }
+            } else {
+                ContentView()
             }
-        } else {
-            ContentView()
+        }
+        .onAppear {
+            // Just connect and listen on launch, don't create anything yet.
+            CreditManager.shared.connectToCloud(context: modelContext)
         }
     }
 }

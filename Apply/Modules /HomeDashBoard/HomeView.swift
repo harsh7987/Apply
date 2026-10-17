@@ -10,8 +10,12 @@ import SwiftData
 internal import MessageUI
 
 struct HomeView: View {
+    // 1. Home View Setup
+    @Environment(\.colorScheme) var colorScheme
+    var creditManager = CreditManager.shared
+    @State var showSubscription = false
     
-    // 1. Observe the global navigation state
+    // 2. Observe the global navigation state
     @StateObject private var navManager = AppNavigationManager.shared
     @Environment(\.modelContext) var modelContext
     @State private var viewModel = HomeViewModel()
@@ -25,14 +29,58 @@ struct HomeView: View {
         TabView(selection: $navManager.selectedTab) {
             
             // TAB 0: HOME
-            ZStack {
-                BackgroundView()
-                VStack(alignment: .center) {
-                    HomeTextView()
-                    StatsViews()
-                    RoundedButtonView(viewModel: viewModel)
-                    Spacer()
-                }
+                ZStack {
+                    // 1. BACKGROUND (Locked)
+                    LiquidDarkBackground(variant: 1)
+                    
+                    GeometryReader { geo in
+                        let h = geo.size.height
+                        VStack(spacing: 0) {
+                            
+                            // A. HEADER
+                            HomeHead(manager: creditManager, showSubscription: $showSubscription)
+                                .frame(height: h * 0.22)
+                                .padding(.bottom, 10)
+                            
+                            // B. STATS
+                            StatsViews()
+                                .frame(height: h * 0.13)
+                            
+                            // --- THE SPRING ---
+                            // This pushes everything apart.
+                            Spacer()
+                            
+                            // C. THE ACTION BUTTON GROUP
+                            VStack(spacing: 16) {
+                                HStack(spacing: 8) {
+                                    Text("Ready for the next opportunity?")
+                                        .font(.system(size: 16, weight: .medium, design: .rounded))
+                                        .foregroundStyle(colorScheme == .dark ? .white.opacity(0.5) : .black.opacity(0.4))
+                                    
+                                    InfoButtonTesting2()
+                                }
+                                
+                                RoundedButtonView(viewModel: viewModel)
+                            }
+                            .padding(.horizontal, 10)
+                            .frame(height: h * 0.16)
+//                            .padding(.bottom, 10)
+                            
+                            // D. THE GRAPHIC (The Anchor)
+                            Hero_ElectricMail()
+                                .scaleEffect(0.8) // Slightly larger to match SS
+                                .opacity(0.9)
+                                .allowsHitTesting(false)
+                                .frame(height: h * 0.35)
+                            
+                            Spacer(minLength: 0)
+                        }
+                        .ignoresSafeArea(.container, edges: .bottom)
+                    }
+                    if showSubscription {
+                        CrystalSubscriptionView(isPresented: $showSubscription, manager: creditManager)
+                            .zIndex(2) // Floats on top
+                    }
             }
             .overlay {
                 if viewModel.showTemplateSelector {
@@ -41,7 +89,7 @@ struct HomeView: View {
                         .onTapGesture { viewModel.showTemplateSelector = false }
                     
                     // The Popup
-                    TemplateSelectorView(
+                    TemplateFrostedGlass(
                         onSelectAI: {
                             viewModel.handleAISelection()
                         },

@@ -11,21 +11,23 @@ import SwiftData
 // 1. The user identity
 @Model
 class UserProfile {
-    var name: String
-    var phoneNumber: String
-    var experience: String
-    var skills: String
-    var email: String
+    // ☁️ CLOUDKIT FIX: Default values assigned directly to the variables
+    var name: String = ""
+    var phoneNumber: String = ""
+    var experience: String = ""
+    var skills: String = ""
+    var email: String = ""
     
-    var lastUpdated: Date
+    var lastUpdated: Date = Date.now
     
+    // 📱 APP LOGIC: The init still lets you pass data when creating a profile in code
     init(name: String = "", email: String = "", phoneNumber: String = "", experience: String = "", skills: String = "") {
         self.name = name
         self.email = email
         self.phoneNumber = phoneNumber
         self.experience = experience
         self.skills = skills
-        self.lastUpdated = Date()
+        self.lastUpdated = Date.now
     }
 }
 
@@ -38,23 +40,27 @@ enum ApplicationMethod: String, Codable {
 
 @Model
 class JobApplication {
-    var id: UUID
-    var companyName: String
-    var jobTitle: String
-    var jobDescription: String
-    var hrEmail: String?
-    var url: String
+    // ☁️ CLOUDKIT FIXES: Every single variable gets a default value.
+    var id: UUID = UUID()
+    var companyName: String = ""
+    var jobTitle: String = ""
+    var jobDescription: String = ""
+    var hrEmail: String? // Optional is already perfect for CloudKit
+    var url: String = ""
     
-    var generatedSubject: String
-    var generatedBody: String
-    var applicationMethod: ApplicationMethod = ApplicationMethod.aiGenerated // Default
+    var generatedSubject: String = ""
+    var generatedBody: String = ""
+    var applicationMethod: ApplicationMethod = ApplicationMethod.aiGenerated // You already had this default!
     
+    var appliedDate: Date = Date.now
+    var followUpDate: Date = Date.now
+    var isFollowUpSent: Bool = false
+    var status: String = ""
+    var followUpCount: Int = 0 // You already had this default!
     
-    var appliedDate: Date
-    var followUpDate: Date
-    var isFollowUpSent: Bool
-    var status: String
-    var followUpCount: Int = 0
+    // ==========================================
+    // 📱 APP LOGIC BELOW (100% UNCHANGED)
+    // ==========================================
     
     var asScrapedJob: ScrapedJob {
             ScrapedJob(
@@ -79,6 +85,7 @@ class JobApplication {
         status: String = "Sent",
         applicationMethod: ApplicationMethod = .aiGenerated
     ) {
+        // We can still overwrite the CloudKit defaults here when a real user makes it!
         self.id = UUID()
         self.companyName = companyName
         self.jobTitle = jobTitle
@@ -96,9 +103,8 @@ class JobApplication {
         self.isFollowUpSent = false
         self.followUpCount = 0
         
-        // ⏰ 7 Days Later// 🧪 TEST MODE: 15 Seconds
-          self.followUpDate = Calendar.current.date(byAdding: .day, value: 7, to: now) ?? now.addingTimeInterval(86400 * 7)
-        //self.followUpDate = Calendar.current.date(byAdding: .second, value: 15, to: now) ?? now.addingTimeInterval(15)
+        // ⏰ 7 Days Later // 🧪 TEST MODE: 15 Seconds
+        self.followUpDate = Calendar.current.date(byAdding: .day, value: 7, to: now) ?? now.addingTimeInterval(86400 * 7)
     }
 }
 
@@ -126,20 +132,38 @@ extension JobApplication {
     }
 }
 
-// User Default Letter
+// 3. User Default Applications
 @Model
 class UserTemplate {
-    var id: UUID
-    var title: String      // e.g. "Standard Pitch"
-    var subject: String    // The email subject
-    var body: String       // The email body
-    var isDefault: Bool    // Should this one be pre-selected?
+    // ☁️ CLOUDKIT FIXES: The "Ghost Builder" needs these defaults at the top
+    var id: UUID = UUID()
+    var title: String = ""      // e.g. "Standard Pitch"
+    var subject: String = ""    // The email subject
+    var body: String = ""       // The email body
+    var isDefault: Bool = false // Should this one be pre-selected?
     
+    // 📱 APP LOGIC: The "Human Builder" (You) still has to pass real data to make one!
     init(title: String, subject: String, body: String, isDefault: Bool) {
-        self.id = UUID()
+        self.id = UUID() // We explicitly assign a fresh UUID when a human makes it
         self.title = title
         self.subject = subject
         self.body = body
         self.isDefault = isDefault
+    }
+}
+
+// 4. Tokens
+@Model
+class UserWallet {
+    // ☁️ CLOUDKIT FIXES: Default values
+    var id: UUID = UUID()
+    var tokenBalance: Int = 0
+    var lastRefillDate: Date = Date.now
+    
+    // 📱 APP LOGIC
+    init(startingTokens: Int) {
+        self.id = UUID()
+        self.tokenBalance = startingTokens
+        self.lastRefillDate = Date.now
     }
 }

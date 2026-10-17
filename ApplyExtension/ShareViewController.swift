@@ -13,7 +13,7 @@ import UniformTypeIdentifiers
 
 class ShareViewController: UIViewController {
     
-    let APP_GROUP_ID = "group.com.harsh007.ApplyNew"
+    let APP_GROUP_ID = "group.com.harsh.verma.apply"
     let APP_URL_SCHEME = "applyApp"
     
     // 1. Keep a reference to the ViewModel

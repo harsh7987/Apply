@@ -10,8 +10,6 @@ import SwiftData
 
 @Observable
 class OnboardingViewModel {
-    
-    var onBoardingItems: [OnboardingItem] = []
     var showReviewSheet = false
     
     // CoverLetter
@@ -27,26 +25,9 @@ class OnboardingViewModel {
     // Add this state to handle the Info Popup
     var showInfoAlert = false
     
-    var resume = OnboardingItem(imageName: "text.document.fill", title: "Upload Resume", subHeading: "PDF or DocX", type: .resume)
-    var letter = OnboardingItem(imageName: "long.text.page.and.pencil.fill", title: "Cover Latter", subHeading: "Optional for tone matching", type: .coverLetter)
+    // Info
+    var showInfoSheet = false
     
-    
-    init() {
-        loadData()
-    }
-    
-    func loadData() {
-        onBoardingItems = [resume, letter]
-    }
-    
-    func performAction(data: OnboardingItemType) {
-        switch data {
-        case .coverLetter:
-            print("latter ")
-        case .resume:
-            print("Resume")
-        }
-    }
     
     @MainActor
     func processSelectResume(resumeURL: URL, modelContext: ModelContext) async {

@@ -23,7 +23,7 @@ class ShareCoordinator {
     static let shared = ShareCoordinator()
     
     // Config
-    let APP_GROUP_ID = "group.com.harsh007.ApplyNew"
+    let APP_GROUP_ID = "group.com.harsh.verma.apply"
     
     // State
     var incomingUrl: String?

@@ -12,12 +12,18 @@ import UserNotifications
 @main
 struct ApplyApp: App {
     @UIApplicationDelegateAdaptor(NotificationDelegate.self) var appDelegate
+    @Environment(\.scenePhase) private var scenePhase
     
     var body: some Scene {
         WindowGroup {
             RootSwitcher()
+                .onChange(of: scenePhase) { oldPhase, newPhase in
+                    if newPhase == .active {
+                        CreditManager.shared.checkAndResetDailyTokens()
+                    }
+                }
         }
-        .modelContainer(for: [UserProfile.self, JobApplication.self, UserTemplate.self])
+        .modelContainer(for: [UserProfile.self, JobApplication.self, UserTemplate.self, UserWallet.self])
     }
 }
 

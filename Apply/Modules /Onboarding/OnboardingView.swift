@@ -10,6 +10,7 @@ import SwiftData
 internal import UniformTypeIdentifiers
 
 struct OnboardingView: View {
+    @Environment(\.colorScheme) var colorScheme
     var onFinish: () -> Void
     @State private var viewmodel = OnboardingViewModel()
     @Environment(\.modelContext) private var modelContext
@@ -17,20 +18,110 @@ struct OnboardingView: View {
     
     var body: some View {
         ZStack {
-            BackgroundView()
-            VStack {
-                OBSubHeadline()
-                ForEach(viewmodel.onBoardingItems) { data in
-                    OnboardingCommonView(data: data) {
-                        getItemView(for: data)
+            LiquidDarkBackground(variant: 2)
+            VStack(spacing: 0) {
+                infoView
+                Spacer()
+                VStack(spacing: 40) {
+                    OBSubHeadline()
+                    VStack(spacing: 20) {
+                        // --- RESUME CARD ---
+                        MyraDataCartridge(
+                            title: "Resume Core",
+                            subtitle: "PDF / DocX",
+                            // PASSING YOUR LOGIC DIRECTLY 👇
+                            isLoading: viewmodel.isExtracting,
+                            isComplete: viewmodel.uploadSucces,
+                            action: {
+                                viewmodel.importResume = true
+                            }
+                        )
+                        .fileImporter(isPresented: $viewmodel.importResume,
+                                      allowedContentTypes: [.pdf],
+                                      allowsMultipleSelection: false) { result in
+                            switch result {
+                            case .success(let url):
+                                if let url = url.first {
+                                    
+                                    Task {
+                                        await viewmodel.processSelectResume(resumeURL: url, modelContext: modelContext)
+                                    }
+                                }
+                            case .failure(let failure):
+                                viewmodel.errorMessage = failure.localizedDescription
+                            }
+                            
+                        }
+                        // --- COVER LETTER CARD ---
+                        MyraDataCartridge(
+                            title: "Tone Module",
+                            subtitle: "Optional Cover Letter",
+                            isLoading: false, // Cover letter has no loading state in your VM yet
+                            isComplete: viewmodel.isCoverUploaded,
+                            action: {
+                                viewmodel.importCover = true
+                            }
+                        )
+                        .fileImporter(isPresented: $viewmodel.importCover,
+                                      allowedContentTypes: [.pdf],
+                                      allowsMultipleSelection: false) { result in
+                            switch result {
+                            case .success(let urls):
+                                if let url = urls.first {
+                                    try? CoverLetterManager.shared.saveCoverLetter(from: url)
+                                    viewmodel.isCoverUploaded = true
+                                }
+                            case .failure(let failure):
+                                viewmodel.errorMessage = failure.localizedDescription
+                            }
+                        }
+                        
                     }
+                    .padding(.horizontal, 24)
+                }
+                Spacer()
+                
+                // --- ERROR BLOCK ---
+                if let error = viewmodel.errorMessage {
+                    HolographicWarning(text: error)
+                        .padding(.top, 20)
+                        .padding(.horizontal, 24)
+                        .onTapGesture {
+                            // Optional: Tap to dismiss locally if you want
+                            withAnimation { viewmodel.errorMessage = nil }
+                        }
                 }
                 
-                if let error = viewmodel.errorMessage {
-                    Text(error).foregroundStyle(.red).font(.caption)
+                Button {
+                    FeedbackManager.shared.impact(.medium)
+                    viewmodel.showReviewSheet.toggle()
+                } label: {
+                    HStack(spacing: 12) {
+                        if viewmodel.uploadSucces {
+                            Image(systemName: "power").font(.system(size: 20, weight: .bold))
+                        }
+                        Text(viewmodel.uploadSucces ? "IGNITE SYSTEM" : "AWAITING CORE")
+                            .font(.system(size: 16, weight: .heavy))
+                            .tracking(1)
+                    }
+                    .foregroundStyle(viewmodel.uploadSucces ? .black : .gray.opacity(0.5))
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 20)
+                    .background(
+                        ZStack {
+                            if viewmodel.uploadSucces {
+                                LinearGradient(colors: [Color(hex: "FFD700"), Color(hex: "FFA500")], startPoint: .leading, endPoint: .trailing)
+                            } else {
+                                RoundedRectangle(cornerRadius: 30).stroke(Color.gray.opacity(0.2), lineWidth: 1)
+                            }
+                        }
+                    )
+                    .clipShape(Capsule())
                 }
-                nextButton
+                .disabled(!viewmodel.uploadSucces)
+                .padding(24)
             }
+            
         }
         .onAppear {
             viewmodel.checkUploadStatus()
@@ -44,150 +135,70 @@ struct OnboardingView: View {
                 }
             }
         }
-        
-    }
-    
-    var nextButton: some View {
-            VStack {
-                Spacer()
-                
-                HStack(spacing: 12) {
-                    // ℹ️ 1. The Info Button (User Manual)
-                    Button {
-                        viewmodel.showInfoAlert = true
-                        FeedbackManager.shared.impact(.light)
-                    } label: {
-                        Image(systemName: "info.circle.fill")
-                            .font(.title2)
-                            .foregroundStyle(.blue)
-                            .frame(width: 50, height: 50)
-                            .background(.regularMaterial) // Glass effect
-                            .clipShape(Circle())
-                    }
-                    .alert("How it works", isPresented: $viewmodel.showInfoAlert) {
-                        Button("Got it", role: .cancel) { }
-                    } message: {
-                        Text("Upload your resume and our AI will automatically extract your details to fill your profile. You can then review and edit the information.")
-                    }
-                    
-                    // ➡️ 2. The Next Button (Conditional)
-                    Button {
-                        FeedbackManager.shared.impact(.medium)
-                        viewmodel.showReviewSheet.toggle()
-                    } label: {
-                        HStack {
-                            Text("Next")
-                            Image(systemName: "arrow.forward")
-                        }
-                        .frame(maxWidth: .infinity) // Make it fill the remaining space
-                        // 🎨 Apply specific style manually instead of .greenCardStyle() for better control here
-                        .font(.title3.bold())
-                        .padding()
-                        .background(viewmodel.uploadSucces ? Color.primary : Color.gray.opacity(0.3)) // Green/Black if active, Gray if disabled
-                        .foregroundStyle(viewmodel.uploadSucces ? Color(uiColor: .systemBackground) : Color.gray) // Text color
-                        .clipShape(RoundedRectangle(cornerRadius: 16))
-                    }
-                    // 🔒 Disable until Resume is Uploaded
-                    .disabled(!viewmodel.uploadSucces)
-                }
-                .padding(.horizontal)
-                .padding(.bottom, 20)
-            }
-        }
-    
-    @ViewBuilder
-    func getItemView(for data: OnboardingItem) -> some View {
-        switch data.type {
-        case .resume:
-            resumeButton
-        case .coverLetter:
-            coverLetterButton
+        // Info about onBoarding
+        .sheet(isPresented: $viewmodel.showInfoSheet) {
+            IntelligenceBriefingSheet()
+                .presentationDetents([.fraction(0.65)]) // Takes up 40% of screen
+                .presentationDragIndicator(.visible)
         }
     }
     
-    var resumeButton: some View {
-        Button {
-            viewmodel.importResume.toggle()
-        } label: {
-            HStack {
-                // Change Text based on State
-                if viewmodel.isExtracting {
-                    ProgressView()
-                } else if viewmodel.uploadSucces {
-                    Image(systemName: "checkmark.circle.fill")
-                } else {
-                    Text("Upload")
+     var infoView: some View {
+        HStack {
+            Spacer()
+            Button(action: { viewmodel.showInfoSheet = true }) {
+                HStack(spacing: 6) {
+                    Image(systemName: "sparkles")
+                        .foregroundStyle(.cyan)
+                    Text("Why is this required?")
                 }
+                .font(.caption.bold())
+                .foregroundStyle(colorScheme == .dark ? .white : .black)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background(Material.ultraThin)
+                .clipShape(Capsule())
+                .overlay(
+                    Capsule().stroke(
+                        LinearGradient(colors: [.cyan.opacity(0.3), .purple.opacity(0.3)], startPoint: .leading, endPoint: .trailing),
+                        lineWidth: 1
+                    )
+                )
             }
-            .buttonDesign()
         }
-        .disabled(viewmodel.isExtracting || viewmodel.uploadSucces)
-        .fileImporter(isPresented: $viewmodel.importResume,
-                      allowedContentTypes: [.pdf],
-                      allowsMultipleSelection: false) { result in
-            switch result {
-            case .success(let url):
-                if let url = url.first {
-                    
-                    Task {
-                        await viewmodel.processSelectResume(resumeURL: url, modelContext: modelContext)
-                    }
-                }
-            case .failure(let failure):
-                viewmodel.errorMessage = failure.localizedDescription
-            }
+        .padding(.horizontal, 24)
+        .padding(.top, 20)
+
+    }
+    
+}
+
+struct HolographicWarning: View {
+    let text: String
+    
+    var body: some View {
+        HStack(spacing: 10) {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .foregroundStyle(.yellow)
             
+            Text(text)
+                .font(.caption.bold())
+                .foregroundStyle(.white)
+                .multilineTextAlignment(.leading)
         }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color.red.opacity(0.2)) // Red Glass
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(Color.red.opacity(0.5), lineWidth: 1) // Red Border
+        )
+        .shadow(color: .red.opacity(0.3), radius: 10)
+        .transition(.move(edge: .top).combined(with: .opacity))
     }
-    
-    var coverLetterButton: some View {
-        Button {
-            print("Import cover letter \(viewmodel.importCover)")
-            viewmodel.importCover.toggle()
-        } label: {
-            HStack {
-                if viewmodel.isCoverUploaded {
-                    Image(systemName: "checkmark.circle.fill")
-                } else {
-                    Text("Upload")
-                }
-            }
-            .buttonDesign()
-        }
-        .fileImporter(isPresented: $viewmodel.importCover,
-                      allowedContentTypes: [.pdf],
-                      allowsMultipleSelection: false) { result in
-            switch result {
-            case .success(let urls):
-                if let url = urls.first {
-                    // ✅ Wrap in do-catch to handle errors safely
-                    do {
-                        try CoverLetterManager.shared.saveCoverLetter(from: url)
-                        
-                        // Update UI immediately
-                        viewmodel.isCoverUploaded = true
-                        FeedbackManager.shared.trigger(.success)
-                        print("✅ Cover letter saved successfully.")
-                    } catch {
-                        print("❌ Failed to save file: \(error.localizedDescription)")
-                        FeedbackManager.shared.trigger(.error)
-                    }
-                }
-            case .failure(let error):
-                print("❌ Import failed: \(error.localizedDescription)")
-            }
-        }
-    }
-    
-    //    @ViewBuilder
-    //    func connectEmailButton() -> some View {
-    //        Button {
-    //            viewmodel.saveAllData()
-    //        } label: {
-    //            Text("Upload")
-    //                .buttonDesign()
-    //        }
-    //    }
 }
 
 #Preview {

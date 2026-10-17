@@ -7,9 +7,6 @@
 
 import Foundation
 
-
-import Foundation
-
 enum RestApi: NetworkRequest {
     
     // CASE 1: Generate Cover Letter
@@ -39,6 +36,7 @@ enum RestApi: NetworkRequest {
         // LOGIC FOR COVER LETTER
         case .generateApplication(_, let req):
             let systemPrompt = "You are a helpful assistant designed to output JSON. Output ONLY raw JSON with keys: 'subject', 'body', and 'company'."
+            
             let userPrompt = """
             Write a \(req.tone.rawValue) job application email.
             MY NAME: \(req.user.name)
